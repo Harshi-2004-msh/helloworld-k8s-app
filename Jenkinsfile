@@ -41,7 +41,8 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                script {
+                withCredentials([file(credentialsId: 'kubeconfig-id', variable: 'KUBECONFIG')]) {
+                    sh 'kubectl get nodes'
                     sh "kubectl apply -f namespace.yaml"
                     sh "kubectl apply -f configmap.yaml -n $K8S_NAMESPACE"
                     sh "kubectl apply -f secret.yaml -n $K8S_NAMESPACE"
