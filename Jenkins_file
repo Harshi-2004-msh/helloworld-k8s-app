@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "harshi39/hello-nginx"
+        IMAGE_TAG = "latest"
+        K8S_NAMESPACE = "default"
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git 'https://github.com/Harshi-2004-msh/helloworld-k8s-app.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh "docker build -t $IMAGE_NAME:$IMAGE_TAG ."
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push $IMAGE_NAME:$IMAGE_TAG
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig-id', variable: 'KUBECONFIG')]) {
+                    sh 'kubectl apply -f k8s/deployment.yaml'
+                    sh 'kubectl apply -f k8s/service.yaml'
+                }
+            }
+        }
+    }
+}
