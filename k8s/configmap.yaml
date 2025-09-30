@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myapp-config
+  namespace: training
+data:
+  APP_COLOR: "blue"
+  WELCOME_MSG: "Welcome to my HelloWorld app!"
